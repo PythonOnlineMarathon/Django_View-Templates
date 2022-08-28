@@ -29,6 +29,8 @@ Everything is at your discretion and the feeling of beauty :)
 
 Create the appropriate views and templates for:
 
+**Do not use django forms, use only HTML forms!**
+
 (if necessary, you can modify the models)
 
 auth
