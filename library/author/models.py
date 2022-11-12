@@ -1,7 +1,6 @@
-from django.db import models, IntegrityError, DataError
+from django.db import models
 
 import book.models
-
 
 
 class Author(models.Model):
@@ -16,13 +15,11 @@ class Author(models.Model):
         param patronymic: Describes middle name of the author
         type patronymic: str max_length=20
     """
-    name = models.CharField(blank = True, max_length=20)
-    surname = models.CharField(blank = True, max_length=20)
-    patronymic = models.CharField(blank = True, max_length=20)
+    name = models.CharField(blank=True, max_length=20)
+    surname = models.CharField(blank=True, max_length=20)
+    patronymic = models.CharField(blank=True, max_length=20)
     books = models.ManyToManyField(book.models.Book, related_name='authors')
     id = models.AutoField(primary_key=True)
-
-
 
     def __str__(self):
         """
@@ -39,7 +36,6 @@ class Author(models.Model):
         """
         return f"Author(id={self.pk})"
 
-
     @staticmethod
     def get_by_id(author_id):
         """
@@ -54,7 +50,6 @@ class Author(models.Model):
         except:
             return None
 
-
     @staticmethod
     def delete_by_id(author_id):
         """
@@ -63,14 +58,11 @@ class Author(models.Model):
         :return: True if object existed in the db and was removed or False if it didn't exist
         """
         try:
-            a = Author.objects.get(pk=author_id)
+            author = Author.objects.get(pk=author_id)
+            author.delete()
+            return True
         except:
             return False
-        else:
-            a.delete()
-            return True
-
-
 
     @staticmethod
     def create(name, surname, patronymic):
@@ -83,12 +75,10 @@ class Author(models.Model):
         type patronymic: str max_length=20
         :return: a new author object which is also written into the DB
         """
-        # return Author(name=name, surname=surname, patronymic=patronymic)
-        a = None
         if name and len(name) <= 20 and surname and len(surname) <= 20 and patronymic and len(patronymic) <= 20:
-            a = Author(name=name, surname=surname, patronymic=patronymic)
-            a.save()
-        return a
+            author = Author(name=name, surname=surname, patronymic=patronymic)
+            author.save()
+            return author
 
     def to_dict(self):
         """
@@ -102,8 +92,6 @@ class Author(models.Model):
         | }
         """
         # return self.__dict__
-
-
 
     def update(self,
                name=None,
@@ -127,9 +115,6 @@ class Author(models.Model):
         if patronymic and len(patronymic) <= 20:
             self.patronymic = patronymic
         self.save()
-
-
-
 
     @staticmethod
     def get_all():
