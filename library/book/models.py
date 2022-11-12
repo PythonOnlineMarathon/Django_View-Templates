@@ -76,11 +76,10 @@ class Book(models.Model):
         book.name = name
         book.description = description
         book.count = count
-        book.save()
         if (authors is not None):
             for elem in authors:
                 book.authors.add(elem)
-                book.save()
+        book.save()
         return book
 
     def to_dict(self):

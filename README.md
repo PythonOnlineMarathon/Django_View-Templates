@@ -34,7 +34,7 @@ Create the appropriate views and templates for:
 (if necessary, you can modify the models)
 
 auth
-* Provide the ability to register the user as an administrator or as an ordinary user (guest)
+* Provide the ability to register the user as a librarian or as an ordinary user (guest)
 * Provide the ability to log in (guest)
 * Provide the ability to Log out (authorized user)
 

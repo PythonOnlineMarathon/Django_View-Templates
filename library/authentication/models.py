@@ -1,14 +1,46 @@
-
-from django.contrib.auth.base_user import AbstractBaseUser
-
-from django.db import models, IntegrityError
-
 import datetime
+
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.db import models
 
 ROLE_CHOICES = (
     (0, 'visitor'),
-    (1, 'admin'),
+    (1, 'librarian'),
 )
+
+
+class CustomUserManager(BaseUserManager):
+    """
+    Custom user model manager where email is the unique identifiers
+    for authentication instead of usernames.
+    """
+
+    def create_user(self, email, password, **extra_fields):
+        """
+        Create and save a User with the given email and password.
+        """
+        if not email:
+            raise ValueError(('The Email must be set'))
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save()
+        return user
+
+    def create_superuser(self, email, password, **extra_fields):
+        """
+        Create and save a SuperUser with the given email and password.
+        """
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault('role', 1)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError(('Superuser must have is_staff=True.'))
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError(('Superuser must have is_superuser=True.'))
+        return self.create_user(email, password, **extra_fields)
 
 
 class CustomUser(AbstractBaseUser):
@@ -46,6 +78,9 @@ class CustomUser(AbstractBaseUser):
     is_active = models.BooleanField(default=False)
     id = models.AutoField(primary_key=True)
 
+    USERNAME_FIELD = 'email'
+    objects = CustomUserManager()
+
     def __str__(self):
         """
         Magic method is redefined to show all information about CustomUser.
@@ -53,7 +88,7 @@ class CustomUser(AbstractBaseUser):
                  user email, user password, user updated_at, user created_at,
                  user role, user is_active
         """
-        return f"'id': {self.id}, 'first_name': '{self.first_name}', 'middle_name': '{self.middle_name}', 'last_name': '{self.last_name}', 'email': '{self.email}', 'created_at': {int(self.created_at.timestamp())}, 'updated_at': {int(self.updated_at.timestamp())}, 'role': {self.role}, 'is_active': {self.is_active}"           #'password': '{self.password}', \
+        return f"'id': {self.id}, 'first_name': '{self.first_name}', 'middle_name': '{self.middle_name}', 'last_name': '{self.last_name}', 'email': '{self.email}', 'created_at': {int(self.created_at.timestamp())}, 'updated_at': {int(self.updated_at.timestamp())}, 'role': {self.role}, 'is_active': {self.is_active}"  # 'password': '{self.password}', \
 
     def __repr__(self):
         """
@@ -70,7 +105,6 @@ class CustomUser(AbstractBaseUser):
         """
         custom_user = CustomUser.objects.filter(id=user_id).first()
         return custom_user if custom_user else None
-
 
     @staticmethod
     def get_by_email(email):
@@ -94,8 +128,7 @@ class CustomUser(AbstractBaseUser):
         if user_to_delete:
             CustomUser.objects.filter(id=user_id).delete()
             return True
-        else:
-            return False
+        return False
 
     @staticmethod
     def create(email, password, first_name=None, middle_name=None, last_name=None):
@@ -112,12 +145,13 @@ class CustomUser(AbstractBaseUser):
         :type password: str
         :return: a new user object which is also written into the DB
         """
-        if len(first_name) <= 20 and len(middle_name) <= 20 and len(last_name) <= 20 and len(email) <= 100 and len(email.split('@')) == 2 and len(CustomUser.objects.filter(email=email)) == 0:
-            custom_user = CustomUser(email = email, password = password, first_name = first_name, middle_name = middle_name, last_name = last_name)
+        if len(first_name) <= 20 and len(middle_name) <= 20 and len(last_name) <= 20 and len(email) <= 100 and len(
+                email.split('@')) == 2 and len(CustomUser.objects.filter(email=email)) == 0:
+            custom_user = CustomUser(email=email, password=password, first_name=first_name, middle_name=middle_name,
+                                     last_name=last_name)
             custom_user.save()
             return custom_user
-        else:
-            return None
+        return None
 
     def to_dict(self):
         """
@@ -136,15 +170,15 @@ class CustomUser(AbstractBaseUser):
         |   'is_active:' True
         | }
         """
-        return {'id': self.id, \
-            'first_name': f'{self.first_name}', \
-            'middle_name': f'{self.middle_name}', \
-            'last_name': f'{self.last_name}', \
-            'email': f'{self.email}', \
-            'created_at': int(self.created_at.timestamp()), \
-            'updated_at': int(self.updated_at.timestamp()), \
-            'role': self.role, \
-            'is_active': self.is_active}
+        return {'id': self.id,
+                'first_name': f'{self.first_name}',
+                'middle_name': f'{self.middle_name}',
+                'last_name': f'{self.last_name}',
+                'email': f'{self.email}',
+                'created_at': int(self.created_at.timestamp()),
+                'updated_at': int(self.updated_at.timestamp()),
+                'role': self.role,
+                'is_active': self.is_active}
 
     def update(self,
                first_name=None,
@@ -183,7 +217,6 @@ class CustomUser(AbstractBaseUser):
         if is_active != None:
             user_to_update.is_active = is_active
         user_to_update.save()
-        return None
 
     @staticmethod
     def get_all():

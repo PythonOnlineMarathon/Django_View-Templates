@@ -77,15 +77,21 @@ class Order(models.Model):
 
     @staticmethod
     def create(user, book, plated_end_at):
-        try:
-            a = Order(user=user, book=book, plated_end_at=plated_end_at)
-            a.save()
-            if book.count < 10:
-                raise Exception
-        except:
+        orders = Order.objects.all()
+        books = set()
+        for order in orders:
+            if not order.end_at:
+                books.add(order.book.id)
+        if book.id in books and book.count == 1:
             return None
-        else:
-            return a
+        try:
+            order = Order(user=user, book=book, plated_end_at=plated_end_at)
+            order.save()
+            return order
+        except ValueError:
+            return None
+        except DataError:
+            return None
 
 
     @staticmethod
