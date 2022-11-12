@@ -1,12 +1,7 @@
-from django.db import models, DataError, IntegrityError
-import django
+from django.db import models, DataError
 
 from authentication.models import CustomUser
-from author.models import Author
 from book.models import Book
-
-from authentication.models import CustomUser
-import datetime
 
 
 class Order(models.Model):
@@ -31,8 +26,6 @@ class Order(models.Model):
     end_at = models.DateTimeField(default=None, null=True, blank=True)
     plated_end_at = models.DateTimeField(default=None)
 
-
-
     def __str__(self):
         """
         Magic method is redefined to show all information about Book.
@@ -40,9 +33,9 @@ class Order(models.Model):
         """
         if self.end_at == None:
             return f"\'id\': {self.pk}, " \
-                    f"\'user\': CustomUser(id={self.user.pk})," \
-                    f" \'book\': Book(id={self.book.pk})," \
-                   f" \'created_at\': \'{self.created_at}\',"\
+                   f"\'user\': CustomUser(id={self.user.pk})," \
+                   f" \'book\': Book(id={self.book.pk})," \
+                   f" \'created_at\': \'{self.created_at}\'," \
                    f" \'end_at\': {self.end_at}," \
                    f" \'plated_end_at\': \'{self.plated_end_at}\'"
         else:
@@ -93,14 +86,12 @@ class Order(models.Model):
         except DataError:
             return None
 
-
     @staticmethod
     def get_by_id(order_id):
         try:
             return Order.objects.get(pk=order_id)
         except:
             return None
-
 
     def update(self, plated_end_at=None, end_at=None):
         if plated_end_at != None:
@@ -115,11 +106,7 @@ class Order(models.Model):
 
     @staticmethod
     def get_not_returned_books():
-        l = []
-        for ord in Order.get_all():
-            if ord.end_at == None:
-                l.append(ord)
-        return l
+        return Order.objects.filter(end_at=None).values()
 
     @staticmethod
     def delete_by_id(order_id):
